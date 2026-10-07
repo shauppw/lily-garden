@@ -1,0 +1,1702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lily Garden — Personal Study Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-garden: #fefdf4;
+            --card-cream: #ffffff;
+            --green-primary: #4a7c59;
+            --green-soft: #88ab8e;
+            --green-light: #eaf1eb;
+            --amber-accent: #d4a373;
+            --gold-accent: #e6b800;
+            --text-main: #2d3748;
+            --text-muted: #718096;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-garden);
+            color: var(--text-main);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(200, 220, 200, 0.15) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(212, 163, 115, 0.12) 0%, transparent 25%);
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+
+        .serif-font {
+            font-family: 'Playfair Display', serif;
+        }
+
+        /* Glassmorphism & Card elevation */
+        .garden-card {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(220, 230, 222, 0.7);
+            box-shadow: 0 10px 25px -5px rgba(74, 124, 89, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+            border-radius: 1.25rem;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .garden-card:hover {
+            box-shadow: 0 14px 30px -5px rgba(74, 124, 89, 0.09), 0 10px 12px -6px rgba(0, 0, 0, 0.03);
+        }
+
+        .garden-btn-primary {
+            background-color: var(--green-primary);
+            color: #ffffff;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(74, 124, 89, 0.25);
+        }
+
+        .garden-btn-primary:hover {
+            background-color: #3b6346;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(74, 124, 89, 0.35);
+        }
+
+        .garden-btn-secondary {
+            background-color: var(--green-light);
+            color: var(--green-primary);
+            border: 1px solid rgba(74, 124, 89, 0.2);
+            transition: all 0.2s ease;
+        }
+
+        .garden-btn-secondary:hover {
+            background-color: #d8e5da;
+            transform: translateY(-1px);
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f2;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #b5ccb8;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--green-soft);
+        }
+
+        /* Tab Transitions */
+        .tab-content {
+            display: none;
+            opacity: 0;
+            transform: translateY(8px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .tab-content.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Navigation active state */
+        .nav-link.active {
+            background-color: var(--green-light);
+            color: var(--green-primary);
+            font-weight: 700;
+        }
+        .nav-link.active svg {
+            stroke: var(--green-primary);
+        }
+
+        /* Progress ring circle animation */
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.5s ease-in-out;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+
+        /* Pulsing indicator */
+        @keyframes pulse-soft {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.85; }
+        }
+        .animate-pulse-soft {
+            animation: pulse-soft 2.5s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="flex flex-col lg:flex-row min-h-screen relative pb-20 lg:pb-0">
+
+    <!-- DESKTOP SIDEBAR NAVIGATION -->
+    <aside class="hidden lg:flex flex-col w-72 bg-white/80 backdrop-blur-md border-r border-emerald-100 p-6 flex-shrink-0 min-h-screen sticky top-0 z-30">
+        <div class="flex items-center gap-3 mb-8 px-2">
+            <div class="w-10 h-10 rounded-2xl bg-emerald-100 flex items-center justify-center text-emerald-800 shadow-sm border border-emerald-200/60">
+                <!-- Lily SVG Icon -->
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2C12 2 14.5 6.5 14.5 9.5C14.5 11 13.5 12 12 12C10.5 12 9.5 11 9.5 9.5C9.5 6.5 12 2 12 2Z" fill="#eaf1eb"/>
+                    <path d="M12 12C12 12 16.5 11 19 13.5C20.5 15 20 16.5 18.5 17C17 17.5 15 16 13.5 14C13 13.3 12.5 12.6 12 12Z" fill="#eaf1eb"/>
+                    <path d="M12 12C12 12 7.5 11 5 13.5C3.5 15 4 16.5 5.5 17C7 17.5 9 16 10.5 14C11 13.3 11.5 12.6 12 12Z" fill="#eaf1eb"/>
+                    <path d="M12 12V22" stroke="#4a7c59" stroke-width="2"/>
+                    <path d="M12 17C14 15 16 16 17 18" stroke="#4a7c59"/>
+                    <path d="M12 19C10 17 8 18 7 20" stroke="#4a7c59"/>
+                </svg>
+            </div>
+            <div>
+                <h1 class="serif-font text-xl font-bold text-emerald-950 tracking-tight leading-tight">Lily Garden</h1>
+                <p class="text-xs text-emerald-700/70 font-medium">Study Companion</p>
+            </div>
+        </div>
+
+        <nav class="space-y-1.5 flex-1">
+            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-link w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-slate-600 hover:bg-emerald-50/70 transition text-sm font-medium">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
+                Dashboard
+            </button>
+            <button onclick="switchTab('stopwatch')" id="nav-stopwatch" class="nav-link w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-slate-600 hover:bg-emerald-50/70 transition text-sm font-medium">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 6 12 12 16 14"/></svg>
+                Stopwatch
+            </button>
+            <button onclick="switchTab('timer')" id="nav-timer" class="nav-link w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-slate-600 hover:bg-emerald-50/70 transition text-sm font-medium">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M5 3L2 6"/><path d="M22 6l-3-3"/><path d="M12 2v1"/></svg>
+                Focus Timer
+            </button>
+            <button onclick="switchTab('sessions')" id="nav-sessions" class="nav-link w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-slate-600 hover:bg-emerald-50/70 transition text-sm font-medium">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                Session Log
+            </button>
+            <button onclick="switchTab('analytics')" id="nav-analytics" class="nav-link w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-slate-600 hover:bg-emerald-50/70 transition text-sm font-medium">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                Analytics
+            </button>
+            <button onclick="switchTab('history')" id="nav-history" class="nav-link w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-slate-600 hover:bg-emerald-50/70 transition text-sm font-medium">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                Garden Calendar
+            </button>
+            <button onclick="switchTab('settings')" id="nav-settings" class="nav-link w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-slate-600 hover:bg-emerald-50/70 transition text-sm font-medium">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                Settings
+            </button>
+        </nav>
+
+        <!-- Quick Share Card Launcher -->
+        <div class="mt-auto pt-6 border-t border-emerald-100">
+            <div class="bg-gradient-to-br from-emerald-50 to-amber-50/50 p-4 rounded-2xl border border-emerald-100/80 text-center">
+                <span class="text-xs font-semibold text-emerald-800 uppercase tracking-wider block mb-1">Daily Summary</span>
+                <p class="text-xs text-slate-600 mb-3">Generate & share your study milestone card</p>
+                <button onclick="openShareModal()" class="w-full py-2 px-3 garden-btn-primary rounded-xl text-xs font-medium flex items-center justify-center gap-2">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+                    Generate Study Card 🌸
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MOBILE BOTTOM NAVIGATION -->
+    <nav class="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-emerald-100 px-3 py-2 z-40 shadow-lg flex justify-around items-center">
+        <button onclick="switchTab('dashboard')" id="mobile-nav-dashboard" class="mobile-nav-item flex flex-col items-center gap-1 p-1.5 text-slate-500 rounded-lg text-xs font-medium">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
+            Dashboard
+        </button>
+        <button onclick="switchTab('stopwatch')" id="mobile-nav-stopwatch" class="mobile-nav-item flex flex-col items-center gap-1 p-1.5 text-slate-500 rounded-lg text-xs font-medium">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 6 12 12 16 14"/></svg>
+            Stopwatch
+        </button>
+        <button onclick="switchTab('timer')" id="mobile-nav-timer" class="mobile-nav-item flex flex-col items-center gap-1 p-1.5 text-slate-500 rounded-lg text-xs font-medium">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/></svg>
+            Timer
+        </button>
+        <button onclick="switchTab('analytics')" id="mobile-nav-analytics" class="mobile-nav-item flex flex-col items-center gap-1 p-1.5 text-slate-500 rounded-lg text-xs font-medium">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            Analytics
+        </button>
+        <button onclick="switchTab('settings')" id="mobile-nav-settings" class="mobile-nav-item flex flex-col items-center gap-1 p-1.5 text-slate-500 rounded-lg text-xs font-medium">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Settings
+        </button>
+    </nav>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="flex-1 p-4 sm:p-6 lg:p-10 max-w-7xl mx-auto w-full">
+
+        <!-- HEADER BAR (Mobile Branding & Live Time) -->
+        <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 pb-6 border-b border-emerald-100/60">
+            <div>
+                <div class="flex items-center gap-2 text-emerald-800 text-xs font-semibold tracking-wider uppercase mb-1">
+                    <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span id="header-date">Wednesday, 7 October 2026</span>
+                </div>
+                <h2 id="greeting-text" class="serif-font text-2xl sm:text-3xl font-bold text-slate-800">Good morning, Scholar</h2>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <div class="bg-white/80 backdrop-blur-sm border border-emerald-100 px-4 py-2 rounded-2xl shadow-sm text-right">
+                    <span class="text-xs text-slate-400 font-medium block uppercase tracking-wider">Local Time</span>
+                    <span id="live-clock" class="text-xl font-bold font-mono text-emerald-900">00:00:00 AM</span>
+                </div>
+                <button onclick="openShareModal()" class="lg:hidden p-2.5 garden-btn-secondary rounded-xl text-emerald-800" title="Share Card">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- 1. DASHBOARD VIEW -->
+        <section id="view-dashboard" class="tab-content space-y-6">
+            
+            <!-- OVER-TARGET CELEBRATION BANNER (HIDDEN BY DEFAULT) -->
+            <div id="goal-completed-banner" class="hidden garden-card bg-gradient-to-r from-emerald-500 to-teal-600 text-white p-5 rounded-2xl shadow-lg border-none">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-2xl shrink-0">🌸</div>
+                    <div>
+                        <h3 class="serif-font text-lg font-bold">Daily Goal Accomplished!</h3>
+                        <p class="text-emerald-50 text-sm">You have blossomed beyond your study target today. Keep up the serene focus!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GOAL & STATS GRID -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Circular Target Progress Card -->
+                <div class="garden-card p-6 flex flex-col items-center justify-center text-center relative overflow-hidden">
+                    <div class="absolute top-3 right-4 opacity-10">
+                        <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2C12 2 14.5 6.5 14.5 9.5C14.5 11 13.5 12 12 12C10.5 12 9.5 11 9.5 9.5C9.5 6.5 12 2 12 2Z" fill="#4a7c59"/></svg>
+                    </div>
+                    
+                    <h3 class="text-xs font-bold text-emerald-800 uppercase tracking-wider mb-4">Today's Progress</h3>
+                    
+                    <!-- SVG Progress Circle -->
+                    <div class="relative w-44 h-44 flex items-center justify-center my-2">
+                        <svg class="w-full h-full" viewBox="0 0 100 100">
+                            <circle class="text-emerald-100" stroke-width="8" stroke="currentColor" fill="transparent" r="40" cx="50" cy="50"/>
+                            <circle id="dash-circle-progress" class="progress-ring__circle text-emerald-600" stroke-width="8" stroke-dasharray="251.2" stroke-dashoffset="251.2" stroke-linecap="round" stroke="currentColor" fill="transparent" r="40" cx="50" cy="50"/>
+                        </svg>
+                        <div class="absolute flex flex-col items-center justify-center">
+                            <span id="dash-percentage" class="serif-font text-3xl font-bold text-slate-800">0%</span>
+                            <span id="dash-studied-time" class="text-xs font-semibold text-emerald-700 mt-0.5">0h 0m</span>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between w-full mt-4 pt-4 border-t border-slate-100 text-xs text-slate-500 font-medium">
+                        <div>
+                            <span>Target: </span>
+                            <span id="dash-target-display" class="font-bold text-slate-700">0h</span>
+                        </div>
+                        <div>
+                            <span>Remaining: </span>
+                            <span id="dash-remaining-display" class="font-bold text-slate-700">0h</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Timer Quick Widget -->
+                <div class="garden-card p-6 md:col-span-2 flex flex-col justify-between relative">
+                    <div class="flex justify-between items-center mb-4">
+                        <div>
+                            <span class="text-xs font-bold text-emerald-800 uppercase tracking-wider block">Live Session Status</span>
+                            <h3 id="dash-active-title" class="serif-font text-xl font-bold text-slate-800 mt-0.5">No Active Timer</h3>
+                        </div>
+                        <span id="dash-active-badge" class="px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-500">Idle</span>
+                    </div>
+
+                    <div class="bg-emerald-50/60 border border-emerald-100/80 rounded-2xl p-5 my-2 flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <div>
+                            <p id="dash-active-subtopic" class="text-sm font-medium text-slate-600">Select a mode to begin your garden study session.</p>
+                            <span id="dash-active-started" class="text-xs text-slate-400 mt-1 block">--:--</span>
+                        </div>
+                        <div id="dash-active-counter" class="text-3xl font-mono font-bold text-emerald-950 tracking-tight">00:00:00</div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-3 mt-4 pt-2">
+                        <button onclick="switchTab('stopwatch')" class="flex-1 min-w-[120px] py-2.5 px-4 garden-btn-primary rounded-xl text-xs font-semibold flex items-center justify-center gap-2">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 6 12 12 16 14"/></svg>
+                            Open Stopwatch
+                        </button>
+                        <button onclick="switchTab('timer')" class="flex-1 min-w-[120px] py-2.5 px-4 garden-btn-secondary rounded-xl text-xs font-semibold flex items-center justify-center gap-2">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/></svg>
+                            Open Focus Timer
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TODAY'S SUBJECT BREAKDOWN SUMMARY & TOPICS -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Subject Cards Grid -->
+                <div class="garden-card p-6">
+                    <h3 class="serif-font text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <span>Today's Subject Distribution</span>
+                        <span class="text-xs font-normal text-slate-400"> (Calculated)</span>
+                    </h3>
+                    <div id="dash-subject-bars" class="space-y-3">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Today's Topics List -->
+                <div class="garden-card p-6 flex flex-col justify-between">
+                    <div>
+                        <h3 class="serif-font text-lg font-bold text-slate-800 mb-4">Completed Topics Today</h3>
+                        <div id="dash-topics-list" class="space-y-2 max-h-56 overflow-y-auto pr-1">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center text-xs text-slate-500">
+                        <span id="dash-session-count">0 Sessions logged today</span>
+                        <button onclick="switchTab('sessions')" class="text-emerald-700 font-semibold hover:underline">View All Log &rarr;</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. STOPWATCH VIEW -->
+        <section id="view-stopwatch" class="tab-content space-y-6">
+            <div class="garden-card p-8 max-w-2xl mx-auto text-center relative overflow-hidden">
+                <span class="text-xs font-bold text-emerald-800 uppercase tracking-widest block mb-2">Precision Tracker</span>
+                <h2 class="serif-font text-3xl font-bold text-slate-800 mb-6">Garden Stopwatch</h2>
+
+                <!-- Control Inputs -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8 text-left">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Select Subject</label>
+                        <select id="sw-subject" class="w-full bg-slate-50 border border-emerald-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <!-- Populated by JS -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Topic / Task (Optional)</label>
+                        <input type="text" id="sw-topic" placeholder="e.g. Work Energy Power" class="w-full bg-slate-50 border border-emerald-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                </div>
+
+                <!-- Main Stopwatch Display -->
+                <div class="my-8 py-8 bg-gradient-to-b from-emerald-50/40 to-slate-50 rounded-3xl border border-emerald-100">
+                    <div id="sw-display" class="font-mono text-5xl sm:text-6xl font-extrabold text-emerald-950 tracking-tight">00:00:00</div>
+                    <p id="sw-status-text" class="text-xs text-slate-400 mt-3 font-medium">Ready to focus</p>
+                </div>
+
+                <!-- Stopwatch Actions -->
+                <div class="flex flex-wrap justify-center items-center gap-4">
+                    <button id="sw-btn-start" onclick="startStopwatch()" class="garden-btn-primary px-8 py-3 rounded-2xl font-bold text-sm flex items-center gap-2">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        Start Session
+                    </button>
+                    <button id="sw-btn-pause" onclick="pauseStopwatch()" class="hidden bg-amber-500 hover:bg-amber-600 text-white px-8 py-3 rounded-2xl font-bold text-sm shadow-md transition flex items-center gap-2">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                        Pause
+                    </button>
+                    <button id="sw-btn-resume" onclick="resumeStopwatch()" class="hidden garden-btn-primary px-8 py-3 rounded-2xl font-bold text-sm flex items-center gap-2">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        Resume
+                    </button>
+                    <button id="sw-btn-stop" onclick="stopStopwatch()" class="hidden bg-rose-600 hover:bg-rose-700 text-white px-8 py-3 rounded-2xl font-bold text-sm shadow-md transition flex items-center gap-2">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+                        Save & Stop
+                    </button>
+                    <button id="sw-btn-reset" onclick="resetStopwatch()" class="garden-btn-secondary px-6 py-3 rounded-2xl font-semibold text-sm">
+                        Reset
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. FOCUS TIMER VIEW -->
+        <section id="view-timer" class="tab-content space-y-6">
+            <div class="garden-card p-8 max-w-2xl mx-auto text-center relative">
+                <span class="text-xs font-bold text-emerald-800 uppercase tracking-widest block mb-2">Pomodoro & Custom</span>
+                <h2 class="serif-font text-3xl font-bold text-slate-800 mb-6">Focus Timer</h2>
+
+                <!-- Presets selection -->
+                <div class="mb-6">
+                    <label class="block text-xs font-semibold text-slate-600 mb-2 text-left">Quick Presets</label>
+                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                        <button onclick="selectTimerPreset(25)" class="tm-preset-btn py-2 px-3 border border-emerald-200 rounded-xl text-xs font-bold text-emerald-800 hover:bg-emerald-50 transition">25m</button>
+                        <button onclick="selectTimerPreset(30)" class="tm-preset-btn py-2 px-3 border border-emerald-200 rounded-xl text-xs font-bold text-emerald-800 hover:bg-emerald-50 transition">30m</button>
+                        <button onclick="selectTimerPreset(45)" class="tm-preset-btn py-2 px-3 border border-emerald-200 rounded-xl text-xs font-bold text-emerald-800 hover:bg-emerald-50 transition">45m</button>
+                        <button onclick="selectTimerPreset(60)" class="tm-preset-btn py-2 px-3 border border-emerald-200 rounded-xl text-xs font-bold text-emerald-800 hover:bg-emerald-50 transition">60m</button>
+                        <button onclick="selectTimerPreset(90)" class="tm-preset-btn py-2 px-3 border border-emerald-200 rounded-xl text-xs font-bold text-emerald-800 hover:bg-emerald-50 transition">90m</button>
+                        <button onclick="enableCustomTimer()" class="tm-preset-btn py-2 px-3 border border-amber-300 bg-amber-50 rounded-xl text-xs font-bold text-amber-800 hover:bg-amber-100 transition">Custom</button>
+                    </div>
+                </div>
+
+                <!-- Custom duration input field -->
+                <div id="tm-custom-container" class="hidden mb-6 text-left">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Custom Minutes</label>
+                    <input type="number" id="tm-custom-min" min="1" max="600" value="20" class="w-full bg-slate-50 border border-emerald-100 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+
+                <!-- Control Inputs -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 text-left">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Select Subject</label>
+                        <select id="tm-subject" class="w-full bg-slate-50 border border-emerald-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <!-- Populated by JS -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Topic / Task (Optional)</label>
+                        <input type="text" id="tm-topic" placeholder="e.g. Vocabulary" class="w-full bg-slate-50 border border-emerald-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                </div>
+
+                <!-- Timer Ring Display -->
+                <div class="my-6 py-6 bg-gradient-to-b from-emerald-50/40 to-slate-50 rounded-3xl border border-emerald-100 flex flex-col items-center">
+                    <div id="tm-display" class="font-mono text-5xl sm:text-6xl font-extrabold text-emerald-950 tracking-tight">25:00</div>
+                    <p id="tm-status-text" class="text-xs text-slate-400 mt-2 font-medium">Ready to initiate timer</p>
+                </div>
+
+                <!-- Controls -->
+                <div class="flex flex-wrap justify-center items-center gap-4">
+                    <button id="tm-btn-start" onclick="startTimer()" class="garden-btn-primary px-8 py-3 rounded-2xl font-bold text-sm flex items-center gap-2">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        Start Timer
+                    </button>
+                    <button id="tm-btn-pause" onclick="pauseTimer()" class="hidden bg-amber-500 hover:bg-amber-600 text-white px-8 py-3 rounded-2xl font-bold text-sm shadow-md transition flex items-center gap-2">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                        Pause
+                    </button>
+                    <button id="tm-btn-resume" onclick="resumeTimer()" class="hidden garden-btn-primary px-8 py-3 rounded-2xl font-bold text-sm flex items-center gap-2">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        Resume
+                    </button>
+                    <button id="tm-btn-stop" onclick="stopTimer(true)" class="hidden bg-rose-600 hover:bg-rose-700 text-white px-8 py-3 rounded-2xl font-bold text-sm shadow-md transition flex items-center gap-2">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+                        Stop & Log Actual
+                    </button>
+                    <button id="tm-btn-reset" onclick="resetTimer()" class="garden-btn-secondary px-6 py-3 rounded-2xl font-semibold text-sm">
+                        Reset
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. SESSION LOG VIEW -->
+        <section id="view-sessions" class="tab-content space-y-6">
+            <div class="garden-card p-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                    <div>
+                        <h2 class="serif-font text-2xl font-bold text-slate-800">Study Session Log</h2>
+                        <p class="text-xs text-slate-500">Every study session recorded with timestamps and duration</p>
+                    </div>
+
+                    <!-- Filters -->
+                    <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                        <select id="log-filter-date" onchange="renderSessionLogs()" class="bg-slate-50 border border-emerald-100 rounded-xl px-3 py-2 text-xs font-medium focus:outline-none">
+                            <option value="all">All Dates</option>
+                            <option value="today" selected>Today</option>
+                            <option value="yesterday">Yesterday</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                        </select>
+                        <select id="log-filter-subject" onchange="renderSessionLogs()" class="bg-slate-50 border border-emerald-100 rounded-xl px-3 py-2 text-xs font-medium focus:outline-none">
+                            <option value="all">All Subjects</option>
+                            <!-- JS Populated -->
+                        </select>
+                        <select id="log-filter-mode" onchange="renderSessionLogs()" class="bg-slate-50 border border-emerald-100 rounded-xl px-3 py-2 text-xs font-medium focus:outline-none">
+                            <option value="all">All Modes</option>
+                            <option value="Stopwatch">Stopwatch</option>
+                            <option value="Timer">Timer</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-emerald-100 text-xs text-slate-400 font-bold uppercase tracking-wider">
+                                <th class="py-3 px-4">Date</th>
+                                <th class="py-3 px-4">Subject & Topic</th>
+                                <th class="py-3 px-4">Time Interval</th>
+                                <th class="py-3 px-4">Duration</th>
+                                <th class="py-3 px-4">Mode</th>
+                                <th class="py-3 px-4 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="session-log-tbody" class="divide-y divide-slate-100 text-sm">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. ANALYTICS & TIME OF DAY ANALYSIS -->
+        <section id="view-analytics" class="tab-content space-y-6">
+            <div class="flex justify-between items-center mb-2">
+                <h2 class="serif-font text-2xl font-bold text-slate-800">Garden Analytics</h2>
+                <select id="analytics-timeframe" onchange="renderAnalytics()" class="bg-white border border-emerald-100 rounded-xl px-4 py-2 text-xs font-bold text-emerald-800">
+                    <option value="today">Today</option>
+                    <option value="week">Past 7 Days</option>
+                    <option value="month">This Month</option>
+                    <option value="all">All Time</option>
+                </select>
+            </div>
+
+            <!-- Key Summary Metric Widgets -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="garden-card p-4">
+                    <span class="text-xs text-slate-400 font-semibold block uppercase">Total Study Time</span>
+                    <span id="ana-total-time" class="serif-font text-2xl font-bold text-emerald-950 mt-1 block">0h 0m</span>
+                </div>
+                <div class="garden-card p-4">
+                    <span class="text-xs text-slate-400 font-semibold block uppercase">Best Study Period</span>
+                    <span id="ana-best-period" class="serif-font text-2xl font-bold text-amber-700 mt-1 block">--</span>
+                </div>
+                <div class="garden-card p-4">
+                    <span class="text-xs text-slate-400 font-semibold block uppercase">Sessions Completed</span>
+                    <span id="ana-total-sessions" class="serif-font text-2xl font-bold text-slate-800 mt-1 block">0</span>
+                </div>
+                <div class="garden-card p-4">
+                    <span class="text-xs text-slate-400 font-semibold block uppercase">Timer vs Stopwatch</span>
+                    <span id="ana-mode-split" class="serif-font text-2xl font-bold text-teal-800 mt-1 block">0% / 0%</span>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Time-Of-Day Category Breakdown -->
+                <div class="garden-card p-6">
+                    <h3 class="serif-font text-lg font-bold text-slate-800 mb-4">Time of Day Breakdown</h3>
+                    <p class="text-xs text-slate-400 mb-4">Morning (5-12), Afternoon (12-17), Evening (17-21), Night (21-5)</p>
+                    <div id="ana-tod-bars" class="space-y-4">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Subject Share Chart -->
+                <div class="garden-card p-6">
+                    <h3 class="serif-font text-lg font-bold text-slate-800 mb-4">Subject Time Distribution</h3>
+                    <div id="ana-subject-chart" class="space-y-3">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hourly Distribution Plot (12 AM - 11 PM) -->
+            <div class="garden-card p-6">
+                <h3 class="serif-font text-lg font-bold text-slate-800 mb-2">Hourly Activity Heatmap (12 AM → 11 PM)</h3>
+                <p class="text-xs text-slate-400 mb-6">Calculated from actual session start and end timestamps</p>
+                <div id="ana-hourly-container" class="h-44 flex items-end justify-between gap-1 pt-6 pb-2 px-2 overflow-x-auto">
+                    <!-- Populated by JS (24 bars) -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. HISTORY CALENDAR VIEW -->
+        <section id="view-history" class="tab-content space-y-6">
+            <div class="garden-card p-6">
+                <h2 class="serif-font text-2xl font-bold text-slate-800 mb-2">Study History & Logbook</h2>
+                <p class="text-xs text-slate-500 mb-6">Historical records stored permanently in your local browser garden</p>
+
+                <div id="history-list-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. SETTINGS & CUSTOMIZATION VIEW -->
+        <section id="view-settings" class="tab-content space-y-6 max-w-3xl mx-auto">
+            <div class="garden-card p-6 space-y-6">
+                <h2 class="serif-font text-2xl font-bold text-slate-800 pb-4 border-b border-emerald-100">Garden Customization</h2>
+
+                <!-- Profile Customization -->
+                <div class="space-y-4">
+                    <h3 class="text-sm font-bold text-emerald-900 uppercase tracking-wider">User Profile & Goals</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Your Name</label>
+                            <input type="text" id="set-user-name" class="w-full bg-slate-50 border border-emerald-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Daily Target (Hours)</label>
+                            <input type="number" id="set-target-hours" step="0.5" min="0.5" max="24" class="w-full bg-slate-50 border border-emerald-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                    </div>
+                    <button onclick="saveProfileSettings()" class="garden-btn-primary px-5 py-2.5 rounded-xl text-xs font-bold">Save Profile Changes</button>
+                </div>
+
+                <!-- Subject Manager -->
+                <div class="space-y-4 pt-6 border-t border-emerald-100">
+                    <h3 class="text-sm font-bold text-emerald-900 uppercase tracking-wider">Subject Manager</h3>
+                    <div class="flex gap-2">
+                        <input type="text" id="set-new-subject" placeholder="Add new subject name..." class="flex-1 bg-slate-50 border border-emerald-100 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <button onclick="addNewSubject()" class="garden-btn-secondary px-4 py-2 rounded-xl text-xs font-bold">Add Subject</button>
+                    </div>
+                    <div id="set-subject-list" class="flex flex-wrap gap-2 pt-2">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Data Backup & Clear -->
+                <div class="space-y-4 pt-6 border-t border-emerald-100">
+                    <h3 class="text-sm font-bold text-emerald-900 uppercase tracking-wider">Data Backup & Safety</h3>
+                    <div class="flex flex-wrap gap-3">
+                        <button onclick="exportDataJSON()" class="garden-btn-secondary px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Export Backup (JSON)
+                        </button>
+                        <label class="garden-btn-secondary px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer flex items-center gap-2">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            Import Backup
+                            <input type="file" id="import-file-input" onchange="importDataJSON(event)" class="hidden" accept=".json">
+                        </label>
+                        <button onclick="clearAllDataWithConfirmation()" class="bg-rose-50 text-rose-700 hover:bg-rose-100 px-4 py-2.5 rounded-xl text-xs font-bold border border-rose-200 transition">
+                            Clear All Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- SHAREABLE STUDY CARD MODAL -->
+    <div id="share-card-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="garden-card max-w-lg w-full p-6 relative overflow-y-auto max-h-[90vh]">
+            <button onclick="closeShareModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+
+            <h3 class="serif-font text-xl font-bold text-slate-800 mb-2 text-center">Lily Garden Study Card</h3>
+            <p class="text-xs text-slate-500 mb-4 text-center">Preview of your generated milestone card</p>
+
+            <div class="flex justify-center mb-4">
+                <canvas id="share-canvas" width="600" height="750" class="w-full max-w-xs sm:max-w-sm rounded-2xl shadow-lg border border-emerald-100"></canvas>
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="downloadStudyCard()" class="flex-1 garden-btn-primary py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Download Card (PNG)
+                </button>
+                <button onclick="shareStudyCardNative()" class="garden-btn-secondary px-4 py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                    Share
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* ==========================================================================
+           LILY GARDEN - PERSONAL STUDY TRACKER CORE ARCHITECTURE
+           ========================================================================== */
+
+        // Default Data Model Structure
+        const DEFAULT_SUBJECTS = ['Bangla', 'English', 'Physics', 'Chemistry', 'Mathematics', 'Biology', 'ICT', 'GK'];
+
+        let appState = {
+            user: {
+                name: 'Scholar',
+                targetHours: 6.0
+            },
+            subjects: [...DEFAULT_SUBJECTS],
+            sessions: [], // Array of { id, dateStr, timestampStart, timestampEnd, subject, topic, durationSec, mode }
+            activeStopwatch: null, // { timestampStart, subject, topic, elapsedBeforePause, isPaused }
+            activeTimer: null // { timestampStart, durationSec, subject, topic, remainingBeforePause, isPaused }
+        };
+
+        // Audio Context for Notification Sound
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playChimeNotification() {
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                osc.frequency.exponentialRampToValueAtTime(659.25, audioCtx.currentTime + 0.3); // E5
+                osc.frequency.exponentialRampToValueAtTime(783.99, audioCtx.currentTime + 0.6); // G5
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1.2);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 1.2);
+            } catch (e) {
+                console.log('Audio autoplay prevented or error:', e);
+            }
+        }
+
+        function loadStateFromStorage() {
+            const saved = localStorage.getItem('lily_garden_app_state');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    appState = { ...appState, ...parsed };
+                } catch (e) {
+                    console.error('Failed to parse localStorage state', e);
+                }
+            }
+            // Ensure subject consistency
+            if (!appState.subjects || appState.subjects.length === 0) {
+                appState.subjects = [...DEFAULT_SUBJECTS];
+            }
+        }
+
+        function saveStateToStorage() {
+            localStorage.setItem('lily_garden_app_state', JSON.stringify(appState));
+        }
+
+        function getFormattedDate(dateObj = new Date()) {
+            const year = dateObj.getFullYear();
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const day = String(dateObj.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`; // ISO YYYY-MM-DD
+        }
+
+        function getDisplayDateString(dateObj = new Date()) {
+            const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+            return dateObj.toLocaleDateString(undefined, options);
+        }
+
+        function formatTimeString(dateObj = new Date()) {
+            return dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function formatDuration(totalSeconds) {
+            const hrs = Math.floor(totalSeconds / 3600);
+            const mins = Math.floor((totalSeconds % 3600) / 60);
+            const secs = Math.floor(totalSeconds % 60);
+            if (hrs > 0) {
+                return `${hrs}h ${mins}m`;
+            }
+            if (mins > 0) {
+                return `${mins}m ${secs}s`;
+            }
+            return `${secs}s`;
+        }
+
+        function formatHHMMSS(totalSeconds) {
+            const hrs = Math.floor(totalSeconds / 3600);
+            const mins = Math.floor((totalSeconds % 3600) / 60);
+            const secs = Math.floor(totalSeconds % 60);
+            return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        let lastCheckedDate = getFormattedDate();
+
+        function startLiveClock() {
+            function updateClock() {
+                const now = new Date();
+                document.getElementById('live-clock').innerText = now.toLocaleTimeString();
+                document.getElementById('header-date').innerText = getDisplayDateString(now);
+
+                // Greeting logic
+                const hour = now.getHours();
+                let greeting = 'Good morning';
+                if (hour >= 12 && hour < 17) greeting = 'Good afternoon';
+                else if (hour >= 17 && hour < 22) greeting = 'Good evening';
+                else if (hour >= 22 || hour < 5) greeting = 'Serene night';
+                document.getElementById('greeting-text').innerText = `${greeting}, ${appState.user.name || 'Scholar'}`;
+
+                // Midnight Check
+                const currentDateStr = getFormattedDate(now);
+                if (currentDateStr !== lastCheckedDate) {
+                    lastCheckedDate = currentDateStr;
+                    refreshUI(); // Trigger dashboard refresh for new date
+                }
+            }
+            updateClock();
+            setInterval(updateClock, 1000);
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.mobile-nav-item').forEach(el => {
+                el.classList.remove('text-emerald-700', 'font-bold');
+                el.classList.add('text-slate-500');
+            });
+
+            const targetView = document.getElementById(`view-${tabId}`);
+            if (targetView) targetView.classList.add('active');
+
+            const navBtn = document.getElementById(`nav-${tabId}`);
+            if (navBtn) navBtn.classList.add('active');
+
+            const mobileBtn = document.getElementById(`mobile-nav-${tabId}`);
+            if (mobileBtn) {
+                mobileBtn.classList.remove('text-slate-500');
+                mobileBtn.classList.add('text-emerald-700', 'font-bold');
+            }
+
+            // Render specific tab contents on navigation
+            if (tabId === 'dashboard') renderDashboard();
+            if (tabId === 'sessions') renderSessionLogs();
+            if (tabId === 'analytics') renderAnalytics();
+            if (tabId === 'history') renderHistoryCalendar();
+            if (tabId === 'settings') renderSettings();
+        }
+
+        let stopwatchTimerLoop = null;
+
+        function updateStopwatchSelects() {
+            const swSelect = document.getElementById('sw-subject');
+            const tmSelect = document.getElementById('tm-subject');
+            if (!swSelect || !tmSelect) return;
+
+            swSelect.innerHTML = appState.subjects.map(s => `<option value="${s}">${s}</option>`).join('');
+            tmSelect.innerHTML = appState.subjects.map(s => `<option value="${s}">${s}</option>`).join('');
+        }
+
+        function startStopwatch() {
+            initAudio();
+            const subject = document.getElementById('sw-subject').value;
+            const topic = document.getElementById('sw-topic').value.trim() || 'General Practice';
+
+            appState.activeStopwatch = {
+                timestampStart: Date.now(),
+                subject,
+                topic,
+                elapsedBeforePause: 0,
+                isPaused: false
+            };
+            saveStateToStorage();
+            updateStopwatchUI();
+        }
+
+        function pauseStopwatch() {
+            if (!appState.activeStopwatch || appState.activeStopwatch.isPaused) return;
+            const now = Date.now();
+            const sessionElapsed = Math.floor((now - appState.activeStopwatch.timestampStart) / 1000);
+            appState.activeStopwatch.elapsedBeforePause += sessionElapsed;
+            appState.activeStopwatch.isPaused = true;
+            saveStateToStorage();
+            updateStopwatchUI();
+        }
+
+        function resumeStopwatch() {
+            if (!appState.activeStopwatch || !appState.activeStopwatch.isPaused) return;
+            appState.activeStopwatch.timestampStart = Date.now();
+            appState.activeStopwatch.isPaused = false;
+            saveStateToStorage();
+            updateStopwatchUI();
+        }
+
+        function stopStopwatch() {
+            if (!appState.activeStopwatch) return;
+
+            let totalSec = appState.activeStopwatch.elapsedBeforePause;
+            if (!appState.activeStopwatch.isPaused) {
+                totalSec += Math.floor((Date.now() - appState.activeStopwatch.timestampStart) / 1000);
+            }
+
+            if (totalSec >= 5) { // Log session if 5+ seconds
+                const now = new Date();
+                const session = {
+                    id: 'sess_' + Date.now(),
+                    dateStr: getFormattedDate(now),
+                    timestampStart: Date.now() - (totalSec * 1000),
+                    timestampEnd: Date.now(),
+                    subject: appState.activeStopwatch.subject,
+                    topic: appState.activeStopwatch.topic,
+                    durationSec: totalSec,
+                    mode: 'Stopwatch'
+                };
+                appState.sessions.unshift(session);
+            }
+
+            appState.activeStopwatch = null;
+            saveStateToStorage();
+            updateStopwatchUI();
+            renderDashboard();
+        }
+
+        function resetStopwatch() {
+            appState.activeStopwatch = null;
+            saveStateToStorage();
+            updateStopwatchUI();
+        }
+
+        function updateStopwatchUI() {
+            clearInterval(stopwatchTimerLoop);
+            const display = document.getElementById('sw-display');
+            const status = document.getElementById('sw-status-text');
+
+            const btnStart = document.getElementById('sw-btn-start');
+            const btnPause = document.getElementById('sw-btn-pause');
+            const btnResume = document.getElementById('sw-btn-resume');
+            const btnStop = document.getElementById('sw-btn-stop');
+
+            if (!appState.activeStopwatch) {
+                display.innerText = "00:00:00";
+                status.innerText = "Ready to focus";
+                btnStart.classList.remove('hidden');
+                btnPause.classList.add('hidden');
+                btnResume.classList.add('hidden');
+                btnStop.classList.add('hidden');
+                return;
+            }
+
+            btnStart.classList.add('hidden');
+            btnStop.classList.remove('hidden');
+
+            function tick() {
+                if (!appState.activeStopwatch) return;
+                let currentElapsed = appState.activeStopwatch.elapsedBeforePause;
+                if (!appState.activeStopwatch.isPaused) {
+                    currentElapsed += Math.floor((Date.now() - appState.activeStopwatch.timestampStart) / 1000);
+                }
+                display.innerText = formatHHMMSS(currentElapsed);
+
+                if (appState.activeStopwatch.isPaused) {
+                    status.innerText = `Paused — ${appState.activeStopwatch.subject} (${appState.activeStopwatch.topic})`;
+                    btnPause.classList.add('hidden');
+                    btnResume.classList.remove('hidden');
+                } else {
+                    status.innerText = `Focusing on ${appState.activeStopwatch.subject} • ${appState.activeStopwatch.topic}`;
+                    btnPause.classList.remove('hidden');
+                    btnResume.classList.add('hidden');
+                }
+            }
+
+            tick();
+            stopwatchTimerLoop = setInterval(tick, 1000);
+        }
+
+        let selectedPresetMinutes = 25;
+        let timerLoop = null;
+
+        function selectTimerPreset(mins) {
+            selectedPresetMinutes = mins;
+            document.getElementById('tm-custom-container').classList.add('hidden');
+            document.getElementById('tm-display').innerText = `${String(mins).padStart(2, '0')}:00`;
+        }
+
+        function enableCustomTimer() {
+            document.getElementById('tm-custom-container').classList.remove('hidden');
+        }
+
+        function startTimer() {
+            initAudio();
+            let durationMins = selectedPresetMinutes;
+            const customContainer = document.getElementById('tm-custom-container');
+            if (!customContainer.classList.contains('hidden')) {
+                durationMins = parseInt(document.getElementById('tm-custom-min').value) || 25;
+            }
+
+            const subject = document.getElementById('tm-subject').value;
+            const topic = document.getElementById('tm-topic').value.trim() || 'Focus Session';
+
+            const totalSec = durationMins * 60;
+            appState.activeTimer = {
+                timestampStart: Date.now(),
+                durationSec: totalSec,
+                remainingBeforePause: totalSec,
+                subject,
+                topic,
+                isPaused: false
+            };
+            saveStateToStorage();
+            updateTimerUI();
+        }
+
+        function pauseTimer() {
+            if (!appState.activeTimer || appState.activeTimer.isPaused) return;
+            const now = Date.now();
+            const elapsed = Math.floor((now - appState.activeTimer.timestampStart) / 1000);
+            appState.activeTimer.remainingBeforePause = Math.max(0, appState.activeTimer.remainingBeforePause - elapsed);
+            appState.activeTimer.isPaused = true;
+            saveStateToStorage();
+            updateTimerUI();
+        }
+
+        function resumeTimer() {
+            if (!appState.activeTimer || !appState.activeTimer.isPaused) return;
+            appState.activeTimer.timestampStart = Date.now();
+            appState.activeTimer.isPaused = false;
+            saveStateToStorage();
+            updateTimerUI();
+        }
+
+        function stopTimer(isEarlyStop = false) {
+            if (!appState.activeTimer) return;
+
+            const totalDuration = appState.activeTimer.durationSec;
+            let remaining = appState.activeTimer.remainingBeforePause;
+            if (!appState.activeTimer.isPaused) {
+                const elapsed = Math.floor((Date.now() - appState.activeTimer.timestampStart) / 1000);
+                remaining = Math.max(0, remaining - elapsed);
+            }
+
+            const actualStudiedSec = totalDuration - remaining;
+
+            if (actualStudiedSec >= 5) {
+                const now = new Date();
+                const session = {
+                    id: 'sess_' + Date.now(),
+                    dateStr: getFormattedDate(now),
+                    timestampStart: Date.now() - (actualStudiedSec * 1000),
+                    timestampEnd: Date.now(),
+                    subject: appState.activeTimer.subject,
+                    topic: appState.activeTimer.topic,
+                    durationSec: actualStudiedSec,
+                    mode: 'Timer'
+                };
+                appState.sessions.unshift(session);
+            }
+
+            if (!isEarlyStop) {
+                playChimeNotification();
+            }
+
+            appState.activeTimer = null;
+            saveStateToStorage();
+            updateTimerUI();
+            renderDashboard();
+        }
+
+        function resetTimer() {
+            appState.activeTimer = null;
+            saveStateToStorage();
+            updateTimerUI();
+        }
+
+        function updateTimerUI() {
+            clearInterval(timerLoop);
+            const display = document.getElementById('tm-display');
+            const status = document.getElementById('tm-status-text');
+
+            const btnStart = document.getElementById('tm-btn-start');
+            const btnPause = document.getElementById('tm-btn-pause');
+            const btnResume = document.getElementById('tm-btn-resume');
+            const btnStop = document.getElementById('tm-btn-stop');
+
+            if (!appState.activeTimer) {
+                display.innerText = `${String(selectedPresetMinutes).padStart(2, '0')}:00`;
+                status.innerText = "Ready to initiate timer";
+                btnStart.classList.remove('hidden');
+                btnPause.classList.add('hidden');
+                btnResume.classList.add('hidden');
+                btnStop.classList.add('hidden');
+                return;
+            }
+
+            btnStart.classList.add('hidden');
+            btnStop.classList.remove('hidden');
+
+            function tickTimer() {
+                if (!appState.activeTimer) return;
+
+                let remaining = appState.activeTimer.remainingBeforePause;
+                if (!appState.activeTimer.isPaused) {
+                    const elapsed = Math.floor((Date.now() - appState.activeTimer.timestampStart) / 1000);
+                    remaining = Math.max(0, remaining - elapsed);
+                }
+
+                const mins = Math.floor(remaining / 60);
+                const secs = remaining % 60;
+                display.innerText = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+                if (remaining <= 0) {
+                    stopTimer(false);
+                    return;
+                }
+
+                if (appState.activeTimer.isPaused) {
+                    status.innerText = `Paused — ${appState.activeTimer.subject} (${appState.activeTimer.topic})`;
+                    btnPause.classList.add('hidden');
+                    btnResume.classList.remove('hidden');
+                } else {
+                    status.innerText = `Counting down • ${appState.activeTimer.subject} (${appState.activeTimer.topic})`;
+                    btnPause.classList.remove('hidden');
+                    btnResume.classList.add('hidden');
+                }
+            }
+
+            tickTimer();
+            timerLoop = setInterval(tickTimer, 1000);
+        }
+
+        function renderDashboard() {
+            const todayStr = getFormattedDate();
+            const todaySessions = appState.sessions.filter(s => s.dateStr === todayStr);
+
+            // Total time calculation
+            const totalSec = todaySessions.reduce((acc, s) => acc + s.durationSec, 0);
+            const targetSec = (appState.user.targetHours || 6) * 3600;
+            const percentage = Math.min(100, Math.round((totalSec / targetSec) * 100));
+
+            // Circular progress
+            const circle = document.getElementById('dash-circle-progress');
+            if (circle) {
+                const radius = circle.r.baseVal.value;
+                const circumference = 2 * Math.PI * radius;
+                const offset = circumference - (percentage / 100) * circumference;
+                circle.style.strokeDashoffset = offset;
+            }
+
+            document.getElementById('dash-percentage').innerText = `${percentage}%`;
+            document.getElementById('dash-studied-time').innerText = formatDuration(totalSec);
+            document.getElementById('dash-target-display').innerText = `${appState.user.targetHours || 6}h`;
+
+            const remainingSec = Math.max(0, targetSec - totalSec);
+            document.getElementById('dash-remaining-display').innerText = formatDuration(remainingSec);
+
+            // Banner celebration
+            const banner = document.getElementById('goal-completed-banner');
+            if (percentage >= 100) banner.classList.remove('hidden');
+            else banner.classList.add('hidden');
+
+            // Active Timer Widget Banner Updates
+            const activeTitle = document.getElementById('dash-active-title');
+            const activeBadge = document.getElementById('dash-active-badge');
+            const activeSub = document.getElementById('dash-active-subtopic');
+            const activeCounter = document.getElementById('dash-active-counter');
+
+            if (appState.activeStopwatch) {
+                activeTitle.innerText = `Stopwatch: ${appState.activeStopwatch.subject}`;
+                activeBadge.innerText = "Stopwatch";
+                activeBadge.className = "px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800";
+                activeSub.innerText = `Topic: ${appState.activeStopwatch.topic}`;
+            } else if (appState.activeTimer) {
+                activeTitle.innerText = `Focus Timer: ${appState.activeTimer.subject}`;
+                activeBadge.innerText = "Timer Mode";
+                activeBadge.className = "px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800";
+                activeSub.innerText = `Topic: ${appState.activeTimer.topic}`;
+            } else {
+                activeTitle.innerText = "No Active Session";
+                activeBadge.innerText = "Idle";
+                activeBadge.className = "px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-500";
+                activeSub.innerText = "Select Stopwatch or Focus Timer to start your study flow.";
+                activeCounter.innerText = "00:00:00";
+            }
+
+            // Subject Breakdown Bars
+            const subjectMap = {};
+            todaySessions.forEach(s => {
+                subjectMap[s.subject] = (subjectMap[s.subject] || 0) + s.durationSec;
+            });
+
+            const barsContainer = document.getElementById('dash-subject-bars');
+            if (Object.keys(subjectMap).length === 0) {
+                barsContainer.innerHTML = `<p class="text-xs text-slate-400 italic py-4">No subjects studied yet today. Your garden is waiting!</p>`;
+            } else {
+                barsContainer.innerHTML = Object.entries(subjectMap).map(([sub, sec]) => {
+                    const pct = Math.round((sec / (totalSec || 1)) * 100);
+                    return `
+                        <div>
+                            <div class="flex justify-between text-xs font-medium text-slate-700 mb-1">
+                                <span>${sub}</span>
+                                <span>${formatDuration(sec)} (${pct}%)</span>
+                            </div>
+                            <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                                <div class="bg-emerald-600 h-2 rounded-full" style="width: ${pct}%"></div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // Topics list
+            const topicsContainer = document.getElementById('dash-topics-list');
+            if (todaySessions.length === 0) {
+                topicsContainer.innerHTML = `<p class="text-xs text-slate-400 italic">No session topics logged today.</p>`;
+            } else {
+                topicsContainer.innerHTML = todaySessions.map(s => `
+                    <div class="flex items-center justify-between bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-xs">
+                        <div class="flex items-center gap-2">
+                            <span class="text-emerald-600">✓</span>
+                            <span class="font-bold text-slate-700">${s.subject}:</span>
+                            <span class="text-slate-600">${s.topic}</span>
+                        </div>
+                        <span class="font-mono text-slate-400">${formatDuration(s.durationSec)}</span>
+                    </div>
+                `).join('');
+            }
+
+            document.getElementById('dash-session-count').innerText = `${todaySessions.length} Session(s) logged today`;
+        }
+
+        function renderSessionLogs() {
+            const dateFilter = document.getElementById('log-filter-date').value;
+            const subjectFilter = document.getElementById('log-filter-subject').value;
+            const modeFilter = document.getElementById('log-filter-mode').value;
+
+            // Update subject dropdown filter options
+            const subFilterSelect = document.getElementById('log-filter-subject');
+            const currentSubVal = subFilterSelect.value;
+            subFilterSelect.innerHTML = `<option value="all">All Subjects</option>` + 
+                appState.subjects.map(s => `<option value="${s}">${s}</option>`).join('');
+            subFilterSelect.value = currentSubVal;
+
+            const now = new Date();
+            const todayStr = getFormattedDate(now);
+
+            let filtered = appState.sessions.filter(s => {
+                if (subjectFilter !== 'all' && s.subject !== subjectFilter) return false;
+                if (modeFilter !== 'all' && s.mode !== modeFilter) return false;
+
+                if (dateFilter === 'today' && s.dateStr !== todayStr) return false;
+                if (dateFilter === 'yesterday') {
+                    const yest = new Date(now);
+                    yest.setDate(yest.getDate() - 1);
+                    if (s.dateStr !== getFormattedDate(yest)) return false;
+                }
+                return true;
+            });
+
+            const tbody = document.getElementById('session-log-tbody');
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-xs text-slate-400 italic">No matching sessions found.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(s => {
+                const startTime = formatTimeString(new Date(s.timestampStart));
+                const endTime = formatTimeString(new Date(s.timestampEnd));
+                return `
+                    <tr class="hover:bg-emerald-50/30 transition">
+                        <td class="py-3.5 px-4 font-mono text-xs text-slate-500">${s.dateStr}</td>
+                        <td class="py-3.5 px-4">
+                            <span class="font-bold text-slate-800">${s.subject}</span>
+                            <span class="text-xs text-slate-500 block">${s.topic}</span>
+                        </td>
+                        <td class="py-3.5 px-4 text-xs text-slate-500 font-mono">${startTime} - ${endTime}</td>
+                        <td class="py-3.5 px-4 font-semibold text-emerald-800">${formatDuration(s.durationSec)}</td>
+                        <td class="py-3.5 px-4">
+                            <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${s.mode === 'Stopwatch' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${s.mode}</span>
+                        </td>
+                        <td class="py-3.5 px-4 text-right">
+                            <button onclick="deleteSession('${s.id}')" class="text-rose-500 hover:text-rose-700 text-xs font-bold">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function deleteSession(sessionId) {
+            appState.sessions = appState.sessions.filter(s => s.id !== sessionId);
+            saveStateToStorage();
+            renderSessionLogs();
+            renderDashboard();
+        }
+
+        function renderAnalytics() {
+            const timeframe = document.getElementById('analytics-timeframe').value;
+            const now = new Date();
+            const todayStr = getFormattedDate(now);
+
+            let filteredSessions = appState.sessions.filter(s => {
+                if (timeframe === 'today') return s.dateStr === todayStr;
+                if (timeframe === 'week') {
+                    const diffDays = (now - new Date(s.timestampStart)) / (1000 * 3600 * 24);
+                    return diffDays <= 7;
+                }
+                if (timeframe === 'month') {
+                    const sessDate = new Date(s.timestampStart);
+                    return sessDate.getMonth() === now.getMonth() && sessDate.getFullYear() === now.getFullYear();
+                }
+                return true;
+            });
+
+            const totalSec = filteredSessions.reduce((acc, s) => acc + s.durationSec, 0);
+            document.getElementById('ana-total-time').innerText = formatDuration(totalSec);
+            document.getElementById('ana-total-sessions').innerText = filteredSessions.length;
+
+            // Mode split
+            const timerSec = filteredSessions.filter(s => s.mode === 'Timer').reduce((a, s) => a + s.durationSec, 0);
+            const swSec = filteredSessions.filter(s => s.mode === 'Stopwatch').reduce((a, s) => a + s.durationSec, 0);
+            const timerPct = totalSec > 0 ? Math.round((timerSec / totalSec) * 100) : 0;
+            const swPct = totalSec > 0 ? Math.round((swSec / totalSec) * 100) : 0;
+            document.getElementById('ana-mode-split').innerText = `${timerPct}% / ${swPct}%`;
+
+            // Time of day calculation
+            // Morning (5-12), Afternoon (12-17), Evening (17-21), Night (21-5)
+            let todMap = { Morning: 0, Afternoon: 0, Evening: 0, Night: 0 };
+            let hourlyMap = new Array(24).fill(0);
+
+            filteredSessions.forEach(s => {
+                const hour = new Date(s.timestampStart).getHours();
+                hourlyMap[hour] += s.durationSec;
+
+                if (hour >= 5 && hour < 12) todMap.Morning += s.durationSec;
+                else if (hour >= 12 && hour < 17) todMap.Afternoon += s.durationSec;
+                else if (hour >= 17 && hour < 21) todMap.Evening += s.durationSec;
+                else todMap.Night += s.durationSec;
+            });
+
+            // Best Period
+            let bestPeriod = '--';
+            let maxTodSec = -1;
+            Object.entries(todMap).forEach(([period, sec]) => {
+                if (sec > maxTodSec && sec > 0) {
+                    maxTodSec = sec;
+                    bestPeriod = period;
+                }
+            });
+            document.getElementById('ana-best-period').innerText = bestPeriod;
+
+            // Render Time of Day Bars
+            const todContainer = document.getElementById('ana-tod-bars');
+            todContainer.innerHTML = Object.entries(todMap).map(([period, sec]) => {
+                const pct = totalSec > 0 ? Math.round((sec / totalSec) * 100) : 0;
+                return `
+                    <div>
+                        <div class="flex justify-between text-xs font-semibold text-slate-700 mb-1">
+                            <span>${period}</span>
+                            <span>${formatDuration(sec)} (${pct}%)</span>
+                        </div>
+                        <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                            <div class="bg-amber-600 h-2.5 rounded-full" style="width: ${pct}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Subject Breakdown
+            const subMap = {};
+            filteredSessions.forEach(s => {
+                subMap[s.subject] = (subMap[s.subject] || 0) + s.durationSec;
+            });
+
+            const subChart = document.getElementById('ana-subject-chart');
+            if (Object.keys(subMap).length === 0) {
+                subChart.innerHTML = `<p class="text-xs text-slate-400 italic">No study data recorded for this timeframe.</p>`;
+            } else {
+                subChart.innerHTML = Object.entries(subMap).map(([sub, sec]) => {
+                    const pct = Math.round((sec / (totalSec || 1)) * 100);
+                    return `
+                        <div>
+                            <div class="flex justify-between text-xs font-semibold text-slate-700 mb-1">
+                                <span>${sub}</span>
+                                <span>${formatDuration(sec)} (${pct}%)</span>
+                            </div>
+                            <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                                <div class="bg-emerald-600 h-2.5 rounded-full" style="width: ${pct}%"></div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // Hourly Bar Chart (24 Hours)
+            const hourlyContainer = document.getElementById('ana-hourly-container');
+            const maxHourlySec = Math.max(...hourlyMap, 1);
+
+            hourlyContainer.innerHTML = hourlyMap.map((sec, hr) => {
+                const heightPct = Math.round((sec / maxHourlySec) * 100);
+                const displayHr = hr % 12 === 0 ? 12 : hr % 12;
+                const ampm = hr >= 12 ? 'P' : 'A';
+                return `
+                    <div class="flex-1 flex flex-col items-center gap-1 group relative min-w-[12px]">
+                        <div class="w-full bg-emerald-100 rounded-t group-hover:bg-emerald-300 transition" style="height: ${Math.max(6, heightPct)}%"></div>
+                        <span class="text-[9px] font-mono text-slate-400">${displayHr}${ampm}</span>
+                        <!-- Tooltip -->
+                        <div class="absolute bottom-full mb-1 hidden group-hover:block bg-slate-800 text-white text-[10px] p-1.5 rounded shadow z-10 whitespace-nowrap">
+                            ${hr}:00 - ${formatDuration(sec)}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderHistoryCalendar() {
+            const container = document.getElementById('history-list-container');
+
+            // Group sessions by date
+            const dateMap = {};
+            appState.sessions.forEach(s => {
+                if (!dateMap[s.dateStr]) {
+                    dateMap[s.dateStr] = [];
+                }
+                dateMap[s.dateStr].push(s);
+            });
+
+            const sortedDates = Object.keys(dateMap).sort().reverse();
+
+            if (sortedDates.length === 0) {
+                container.innerHTML = `<div class="col-span-full py-12 text-center text-slate-400 text-sm italic">No past study sessions recorded yet. Start a stopwatch or timer!</div>`;
+                return;
+            }
+
+            const targetSec = (appState.user.targetHours || 6) * 3600;
+
+            container.innerHTML = sortedDates.map(dStr => {
+                const sessions = dateMap[dStr];
+                const totalSec = sessions.reduce((acc, s) => acc + s.durationSec, 0);
+                const pct = Math.min(100, Math.round((totalSec / targetSec) * 100));
+
+                const subjects = [...new Set(sessions.map(s => s.subject))].join(', ');
+
+                return `
+                    <div class="bg-white/80 border border-emerald-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <h4 class="font-bold text-slate-800 font-mono">${dStr}</h4>
+                                <span class="text-xs text-slate-400">${sessions.length} Session(s)</span>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-full text-xs font-bold ${pct >= 100 ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}">${pct}% Goal</span>
+                        </div>
+
+                        <div class="text-xl font-bold text-emerald-950 my-2">${formatDuration(totalSec)}</div>
+
+                        <p class="text-xs text-slate-500 truncate mb-3">Subjects: ${subjects}</p>
+
+                        <button onclick="filterLogsToDate('${dStr}')" class="w-full py-1.5 garden-btn-secondary rounded-xl text-xs font-semibold">View Session Details</button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterLogsToDate(dStr) {
+            switchTab('sessions');
+            const dateFilterSelect = document.getElementById('log-filter-date');
+            dateFilterSelect.value = 'all';
+            renderSessionLogs();
+        }
+
+        function renderSettings() {
+            document.getElementById('set-user-name').value = appState.user.name || 'Scholar';
+            document.getElementById('set-target-hours').value = appState.user.targetHours || 6;
+
+            const subList = document.getElementById('set-subject-list');
+            subList.innerHTML = appState.subjects.map(s => `
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-semibold text-emerald-800">
+                    ${s}
+                    <button onclick="removeSubject('${s}')" class="text-emerald-500 hover:text-rose-600 font-bold ml-1">×</button>
+                </span>
+            `).join('');
+        }
+
+        function saveProfileSettings() {
+            const name = document.getElementById('set-user-name').value.trim() || 'Scholar';
+            const target = parseFloat(document.getElementById('set-target-hours').value) || 6;
+
+            appState.user.name = name;
+            appState.user.targetHours = target;
+            saveStateToStorage();
+            renderDashboard();
+            alert('Profile settings saved successfully 🌸');
+        }
+
+        function addNewSubject() {
+            const input = document.getElementById('set-new-subject');
+            const val = input.value.trim();
+            if (val && !appState.subjects.includes(val)) {
+                appState.subjects.push(val);
+                input.value = '';
+                saveStateToStorage();
+                updateStopwatchSelects();
+                renderSettings();
+            }
+        }
+
+        function removeSubject(subName) {
+            appState.subjects = appState.subjects.filter(s => s !== subName);
+            saveStateToStorage();
+            updateStopwatchSelects();
+            renderSettings();
+        }
+
+        function exportDataJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `lily_garden_backup_${getFormattedDate()}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importDataJSON(event) {
+            const fileReader = new FileReader();
+            fileReader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (imported && imported.sessions) {
+                        appState = imported;
+                        saveStateToStorage();
+                        updateStopwatchSelects();
+                        refreshUI();
+                        alert('Garden backup restored successfully 🌸');
+                    }
+                } catch (err) {
+                    alert('Invalid JSON file format.');
+                }
+            };
+            fileReader.readAsText(event.target.files[0]);
+        }
+
+        function clearAllDataWithConfirmation() {
+            if (confirm("Are you sure you want to clear all your study records and settings? This cannot be undone.")) {
+                localStorage.removeItem('lily_garden_app_state');
+                location.reload();
+            }
+        }
+
+        function openShareModal() {
+            document.getElementById('share-card-modal').classList.remove('hidden');
+            generateCanvasStudyCard();
+        }
+
+        function closeShareModal() {
+            document.getElementById('share-card-modal').classList.add('hidden');
+        }
+
+        function generateCanvasStudyCard() {
+            const canvas = document.getElementById('share-canvas');
+            const ctx = canvas.getContext('2d');
+
+            const width = canvas.width;
+            const height = canvas.height;
+
+            // Background fill
+            ctx.fillStyle = '#fefdf4';
+            ctx.fillRect(0, 0, width, height);
+
+            // Garden Frame Border
+            ctx.strokeStyle = '#88ab8e';
+            ctx.lineWidth = 12;
+            ctx.strokeRect(16, 16, width - 32, height - 32);
+
+            ctx.strokeStyle = '#4a7c59';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(26, 26, width - 52, height - 52);
+
+            // Header Title
+            ctx.fillStyle = '#4a7c59';
+            ctx.font = 'bold 22px Playfair Display, serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('LILY GARDEN STUDY MILESTONE', width / 2, 75);
+
+            // User & Date
+            ctx.fillStyle = '#2d3748';
+            ctx.font = 'bold 32px Plus Jakarta Sans, sans-serif';
+            ctx.fillText(`${appState.user.name}'s Garden`, width / 2, 125);
+
+            ctx.fillStyle = '#718096';
+            ctx.font = '18px Plus Jakarta Sans, sans-serif';
+            ctx.fillText(getDisplayDateString(), width / 2, 155);
+
+            // Center Study Card Container
+            ctx.fillStyle = '#ffffff';
+            ctx.shadowColor = 'rgba(74, 124, 89, 0.15)';
+            ctx.shadowBlur = 20;
+            ctx.beginPath();
+            ctx.roundRect(50, 185, width - 100, 470, 24);
+            ctx.fill();
+            ctx.shadowBlur = 0; // reset
+
+            const todayStr = getFormattedDate();
+            const todaySessions = appState.sessions.filter(s => s.dateStr === todayStr);
+            const totalSec = todaySessions.reduce((acc, s) => acc + s.durationSec, 0);
+            const targetSec = (appState.user.targetHours || 6) * 3600;
+            const percentage = Math.min(100, Math.round((totalSec / targetSec) * 100));
+
+            // Main Stats Display
+            ctx.fillStyle = '#4a7c59';
+            ctx.font = 'bold 54px Plus Jakarta Sans, sans-serif';
+            ctx.fillText(formatDuration(totalSec), width / 2, 265);
+
+            ctx.fillStyle = '#d4a373';
+            ctx.font = 'bold 20px Plus Jakarta Sans, sans-serif';
+            ctx.fillText(`Goal Progress: ${percentage}% (${appState.user.targetHours}h Target)`, width / 2, 305);
+
+            // Divider Line
+            ctx.strokeStyle = '#eaf1eb';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(80, 335);
+            ctx.lineTo(width - 80, 335);
+            ctx.stroke();
+
+            // Stats Grid Inside Canvas Card
+            ctx.textAlign = 'left';
+            ctx.fillStyle = '#2d3748';
+            ctx.font = 'bold 18px Plus Jakarta Sans, sans-serif';
+
+            ctx.fillText(`Sessions Logged: ${todaySessions.length}`, 85, 380);
+
+            const timerSec = todaySessions.filter(s => s.mode === 'Timer').reduce((a, s) => a + s.durationSec, 0);
+            const swSec = todaySessions.filter(s => s.mode === 'Stopwatch').reduce((a, s) => a + s.durationSec, 0);
+
+            ctx.fillText(`Focus Timer: ${formatDuration(timerSec)}`, 85, 420);
+            ctx.fillText(`Stopwatch: ${formatDuration(swSec)}`, 85, 460);
+
+            // Top Subject
+            const subMap = {};
+            todaySessions.forEach(s => subMap[s.subject] = (subMap[s.subject] || 0) + s.durationSec);
+            let topSub = 'None';
+            let maxSec = -1;
+            Object.entries(subMap).forEach(([s, sec]) => {
+                if (sec > maxSec) { maxSec = sec; topSub = s; }
+            });
+
+            ctx.fillText(`Primary Subject: ${topSub}`, 85, 500);
+
+            // Decorative Lily Motif at Bottom of Card
+            ctx.fillStyle = '#4a7c59';
+            ctx.font = 'bold 28px serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('🌸 🌿 🌸', width / 2, 575);
+
+            // Footer Tag
+            ctx.fillStyle = '#88ab8e';
+            ctx.font = 'italic 16px Playfair Display, serif';
+            ctx.fillText('Nurture knowledge daily in the serene garden', width / 2, 620);
+
+            ctx.fillStyle = '#718096';
+            ctx.font = '14px Plus Jakarta Sans, sans-serif';
+            ctx.fillText('lilygarden.app • Personal Study Tracker', width / 2, 700);
+        }
+
+        function downloadStudyCard() {
+            const canvas = document.getElementById('share-canvas');
+            const image = canvas.toDataURL("image/png");
+            const link = document.createElement('a');
+            link.download = `lily_garden_study_${getFormattedDate()}.png`;
+            link.href = image;
+            link.click();
+        }
+
+        function shareStudyCardNative() {
+            const canvas = document.getElementById('share-canvas');
+            canvas.toBlob(blob => {
+                if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob], 'study.png', { type: 'image/png' })] })) {
+                    const file = new File([blob], 'lily_study_card.png', { type: 'image/png' });
+                    navigator.share({
+                        title: 'My Study Milestone Card',
+                        text: 'Check out my study progress in Lily Garden today! 🌸',
+                        files: [file]
+                    }).catch(console.error);
+                } else {
+                    downloadStudyCard();
+                }
+            });
+        }
+
+        function refreshUI() {
+            updateStopwatchSelects();
+            updateStopwatchUI();
+            updateTimerUI();
+            renderDashboard();
+        }
+
+        window.onload = function() {
+            loadStateFromStorage();
+            startLiveClock();
+            updateStopwatchSelects();
+
+            // Recover active sessions timestamp logic
+            updateStopwatchUI();
+            updateTimerUI();
+
+            switchTab('dashboard');
+        };
+    </script>
+</body>
+</html>
